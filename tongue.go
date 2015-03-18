@@ -22,20 +22,19 @@ type Entry struct {
 type Entries []Entry
 
 // Default filename
-const default_filename string = "collection.json"
+const defaultFilename string = "collection.json"
 
 // Collection of entries
 var col Entries
 
 // filename gets the filename that should be used.
-// If the user didn't specify any with --file default_filename will be used,
+// If the user didn't specify any with --file defaultFilename will be used,
 // which is set to 'collection.json'.
 func filename(c *cli.Context) string {
 	if c.GlobalIsSet("file") {
 		return c.GlobalString("file")
-	} else {
-		return default_filename
 	}
+	return defaultFilename
 }
 
 // load loads a JSON file into the Entries slice
