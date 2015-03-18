@@ -95,6 +95,20 @@ func cmdAdd(c *cli.Context) {
 	}
 }
 
+// cmdDelete handles the 'delete' command.
+// It deletes an entry from the JSON database.
+// The searchterm is the native word, and only the first occurance will get deleted.
+func cmdDelete(c *cli.Context) {
+	entries, _ := loadJSON(c)
+	for i, entry := range entries {
+		if entry.Native == c.Args().Get(0) {
+			entries = append(entries[:i], entries[i+1:]...)
+			break
+		}
+	}
+	saveJSON(c, entries)
+}
+
 // cmdList handles the 'list' command.
 // It lists all entries from the JSON database.
 func cmdList(c *cli.Context) {
@@ -175,6 +189,12 @@ func main() {
 			ShortName: "a",
 			Usage:     "add a new entry to the database",
 			Action:    cmdAdd,
+		},
+		{
+			Name:      "delete",
+			ShortName: "d",
+			Usage:     "delete entry from the database. Argument is the native word. Only the first occurance will be deleted.",
+			Action:    cmdDelete,
 		},
 		{
 			Name:      "list",
