@@ -63,6 +63,16 @@ func save(entities Entries) {
 	file.Write(content)
 }
 
+func showNativeOrForeign(c *cli.Context, e Entry) {
+	if c.GlobalBool("no-native") {
+		fmt.Printf("%s\n", e.Foreign)
+	} else if c.GlobalBool("no-foreign") {
+		fmt.Printf("%s\n", e.Native)
+	} else {
+		fmt.Printf("%s - %s\n", e.Native, e.Foreign)
+	}
+}
+
 func cmdAdd(c *cli.Context) {
 	if len(c.Args()) < 2 {
 		fmt.Println("Usage: add native foreign")
@@ -78,7 +88,7 @@ func cmdList(c *cli.Context) {
 	entries, count := load(filename)
 	fmt.Printf("You have %d entries in your database: \n", count)
 	for _, entry := range entries {
-		fmt.Printf("%s - %s\n", entry.Native, entry.Foreign)
+		showNativeOrForeign(c, entry)
 	}
 }
 
@@ -111,13 +121,7 @@ func cmdShow(c *cli.Context) {
 			}
 		}
 
-		if c.GlobalBool("no-native") {
-			fmt.Printf("%s\n", entries[index].Foreign)
-		} else if c.GlobalBool("no-foreign") {
-			fmt.Printf("%s\n", entries[index].Native)
-		} else {
-			fmt.Printf("%s - %s\n", entries[index].Native, entries[index].Foreign)
-		}
+		showNativeOrForeign(c, entries[index])
 	}
 }
 
