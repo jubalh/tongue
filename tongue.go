@@ -24,15 +24,23 @@ type Entries []Entry
 // Default filename
 const default_filename string = "collection.json"
 
-// Name of the file to which JSON will get saved
-var filename string = default_filename
-
 // Collection of entries
 var col Entries
 
+// filename gets the filename that should be used.
+// If the user didn't specify any with --file default_filename will be used,
+// which is set to 'collection.json'.
+func filename(c *cli.Context) string {
+	if c.GlobalIsSet("file") {
+		return c.GlobalString("file")
+	} else {
+		return default_filename
+	}
+}
+
 // load loads a JSON file into the Entries slice
-func load(filename string) (e Entries, count int) {
-	data, err := ioutil.ReadFile(filename)
+func loadJSON(c *cli.Context) (e Entries, count int) {
+	data, err := ioutil.ReadFile(filename(c))
 	if err != nil {
 		fmt.Println("error reading file")
 	}
@@ -49,12 +57,12 @@ func load(filename string) (e Entries, count int) {
 }
 
 // save saves JSON database to file.
-func save(entities Entries) {
+func saveJSON(c *cli.Context, entities Entries) {
 	content, err := json.Marshal(entities)
 	if err != nil {
 		fmt.Println("error")
 	}
-	file, err := os.Create(filename)
+	file, err := os.Create(filename(c))
 	if err != nil {
 		return
 	}
@@ -81,17 +89,17 @@ func cmdAdd(c *cli.Context) {
 	if len(c.Args()) < 2 {
 		fmt.Println("Usage: add native foreign")
 	} else {
-		entries, _ := load(filename)
+		entries, _ := loadJSON(c)
 		e := Entry{Native: c.Args().Get(0), Foreign: c.Args().Get(1)}
 		entries = append(entries, e)
-		save(entries)
+		saveJSON(c, entries)
 	}
 }
 
 // cmdList handles the 'list' command.
 // It lists all entries from the JSON database.
 func cmdList(c *cli.Context) {
-	entries, count := load(filename)
+	entries, count := loadJSON(c)
 	fmt.Printf("You have %d entries in your database: \n", count)
 	for _, entry := range entries {
 		showNativeOrForeign(c, entry)
@@ -107,7 +115,7 @@ func cmdList(c *cli.Context) {
 // --foreign the foreign word of the entry
 // In case none of those is set it will display a random entry.
 func cmdShow(c *cli.Context) {
-	entries, count := load(filename)
+	entries, count := loadJSON(c)
 	if c.IsSet("native") {
 		search := c.String("native")
 		for _, entry := range entries {
@@ -157,6 +165,9 @@ func main() {
 		cli.BoolFlag{
 			Name:  "no-foreign",
 			Usage: "don't display foreign word"},
+		cli.StringFlag{
+			Name:  "file",
+			Usage: "specify JSON file"},
 	}
 
 	app.Commands = []cli.Command{
