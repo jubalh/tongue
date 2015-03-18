@@ -126,8 +126,9 @@ func cmdShow(c *cli.Context) {
 		var index int
 		if c.IsSet("index") {
 			index = c.Int("index")
-			if index < 0 || index > count {
-				fmt.Printf("Warning: Your Database has %d entries.\nPlease choose an index between 0 and %d.\n", count, count)
+			index--
+			if index < 0 || index >= count {
+				fmt.Printf("Warning: Your Database has %d entries.\nPlease choose an index between 1 and %d.\n", count, count)
 				return
 			}
 		} else {
