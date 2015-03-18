@@ -82,10 +82,20 @@ func cmdList(c *cli.Context) {
 	}
 }
 
-func cmdRandom(c *cli.Context) {
+func cmdShow(c *cli.Context) {
 	entries, count := load(filename)
-	rand.Seed(time.Now().UTC().UnixNano())
-	index := rand.Intn(count)
+	var index int = 1
+	if c.IsSet("random") {
+		rand.Seed(time.Now().UTC().UnixNano())
+		index = rand.Intn(count)
+	} else if c.IsSet("index") {
+		index = c.Int("index")
+		if index < 0 || index > count {
+			fmt.Printf("Warning: Your Database has %d entries.\nPlease choose an index between 0 and %d.\n", count, count)
+			return
+		}
+	}
+
 	fmt.Printf("%s - %s\n", entries[index].Native, entries[index].Foreign)
 }
 
@@ -122,10 +132,20 @@ func main() {
 			Action:    cmdList,
 		},
 		{
-			Name:      "random",
-			ShortName: "r",
-			Usage:     "display a random entry",
-			Action:    cmdRandom,
+			Name:      "show",
+			ShortName: "s",
+			Usage:     "display an entry",
+			Action:    cmdShow,
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "random, r",
+					Usage: "display a random entry",
+				},
+				cli.IntFlag{
+					Name:  "index, i",
+					Usage: "display entry with index 'index'",
+				},
+			},
 		}}
 
 	app.Run(os.Args)
