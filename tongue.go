@@ -11,8 +11,8 @@ import (
 )
 
 // An Entry consists of two fiels.
-// Native, containing the word in the users native language
-// Foreign, containing the word in the language the user intends to learn
+// Native, containing the word in the users native language.
+// Foreign, containing the word in the language the user intends to learn.
 type Entry struct {
 	Native  string
 	Foreign string
@@ -48,7 +48,7 @@ func load(filename string) (e Entries, count int) {
 	return e, count
 }
 
-// save saves JSON database to file
+// save saves JSON database to file.
 func save(entities Entries) {
 	content, err := json.Marshal(entities)
 	if err != nil {
@@ -63,6 +63,8 @@ func save(entities Entries) {
 	file.Write(content)
 }
 
+// showNativeOrForeign switches between displaying only the native/foreign values or both.
+// It depends on the global --no-native / --no-foreign flag.
 func showNativeOrForeign(c *cli.Context, e Entry) {
 	if c.GlobalBool("no-native") {
 		fmt.Printf("%s\n", e.Foreign)
@@ -73,6 +75,8 @@ func showNativeOrForeign(c *cli.Context, e Entry) {
 	}
 }
 
+// cmdAdd handles the 'add' command.
+// It adds new entries to the JSON database.
 func cmdAdd(c *cli.Context) {
 	if len(c.Args()) < 2 {
 		fmt.Println("Usage: add native foreign")
@@ -84,6 +88,8 @@ func cmdAdd(c *cli.Context) {
 	}
 }
 
+// cmdList handles the 'list' command.
+// It lists all entries from the JSON database.
 func cmdList(c *cli.Context) {
 	entries, count := load(filename)
 	fmt.Printf("You have %d entries in your database: \n", count)
@@ -92,6 +98,14 @@ func cmdList(c *cli.Context) {
 	}
 }
 
+// cmdShow handles the 'show' command.
+// It shows an entry either native/foreign or both.
+// Depending on the --no-native / --no-foreign global flag.
+// It searches for entries in the database using:
+// --index the index of the entry
+// --native the native word of the entry
+// --foreign the foreign word of the entry
+// In case none of those is set it will display a random entry.
 func cmdShow(c *cli.Context) {
 	entries, count := load(filename)
 	if c.IsSet("native") {
@@ -109,16 +123,16 @@ func cmdShow(c *cli.Context) {
 			}
 		}
 	} else {
-		var index int = 1
-		if c.IsSet("random") {
-			rand.Seed(time.Now().UTC().UnixNano())
-			index = rand.Intn(count)
-		} else if c.IsSet("index") {
+		var index int
+		if c.IsSet("index") {
 			index = c.Int("index")
 			if index < 0 || index > count {
 				fmt.Printf("Warning: Your Database has %d entries.\nPlease choose an index between 0 and %d.\n", count, count)
 				return
 			}
+		} else {
+			rand.Seed(time.Now().UTC().UnixNano())
+			index = rand.Intn(count)
 		}
 
 		showNativeOrForeign(c, entries[index])
@@ -163,10 +177,6 @@ func main() {
 			Usage:     "display an entry",
 			Action:    cmdShow,
 			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "random, r",
-					Usage: "display a random entry",
-				},
 				cli.IntFlag{
 					Name:  "index, i",
 					Usage: "display entry with index 'index'",
