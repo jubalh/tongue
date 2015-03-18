@@ -84,26 +84,41 @@ func cmdList(c *cli.Context) {
 
 func cmdShow(c *cli.Context) {
 	entries, count := load(filename)
-	var index int = 1
-	if c.IsSet("random") {
-		rand.Seed(time.Now().UTC().UnixNano())
-		index = rand.Intn(count)
-	} else if c.IsSet("index") {
-		index = c.Int("index")
-		if index < 0 || index > count {
-			fmt.Printf("Warning: Your Database has %d entries.\nPlease choose an index between 0 and %d.\n", count, count)
-			return
+	if c.IsSet("native") {
+		search := c.String("native")
+		for _, entry := range entries {
+			if entry.Native == search {
+				fmt.Println(entry.Foreign)
+			}
+		}
+	} else if c.IsSet("foreign") {
+		search := c.String("foreign")
+		for _, entry := range entries {
+			if entry.Foreign == search {
+				fmt.Println(entry.Native)
+			}
+		}
+	} else {
+		var index int = 1
+		if c.IsSet("random") {
+			rand.Seed(time.Now().UTC().UnixNano())
+			index = rand.Intn(count)
+		} else if c.IsSet("index") {
+			index = c.Int("index")
+			if index < 0 || index > count {
+				fmt.Printf("Warning: Your Database has %d entries.\nPlease choose an index between 0 and %d.\n", count, count)
+				return
+			}
+		}
+
+		if c.GlobalBool("no-native") {
+			fmt.Printf("%s\n", entries[index].Foreign)
+		} else if c.GlobalBool("no-foreign") {
+			fmt.Printf("%s\n", entries[index].Native)
+		} else {
+			fmt.Printf("%s - %s\n", entries[index].Native, entries[index].Foreign)
 		}
 	}
-
-	if c.GlobalBool("no-native") {
-		fmt.Printf("%s\n", entries[index].Foreign)
-	} else if c.GlobalBool("no-foreign") {
-		fmt.Printf("%s\n", entries[index].Native)
-	} else {
-		fmt.Printf("%s - %s\n", entries[index].Native, entries[index].Foreign)
-	}
-
 }
 
 // Main
@@ -118,10 +133,10 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
-			Name:  "no-native, n",
+			Name:  "no-native",
 			Usage: "don't display native word"},
 		cli.BoolFlag{
-			Name:  "no-foreign, f",
+			Name:  "no-foreign",
 			Usage: "don't display foreign word"},
 	}
 
@@ -151,6 +166,14 @@ func main() {
 				cli.IntFlag{
 					Name:  "index, i",
 					Usage: "display entry with index 'index'",
+				},
+				cli.StringFlag{
+					Name:  "native, n",
+					Usage: "display entry where native word is 'native'",
+				},
+				cli.StringFlag{
+					Name:  "foreign, f",
+					Usage: "display entry where foreign word is 'foreign'",
 				},
 			},
 		}}
