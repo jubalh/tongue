@@ -187,7 +187,7 @@ func main() {
 		{
 			Name:      "add",
 			ShortName: "a",
-			Usage:     "add a new entry to the database",
+			Usage:     "add a new entry to the database. First argument is native, second is foreign word.",
 			Action:    cmdAdd,
 		},
 		{
