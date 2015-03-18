@@ -96,7 +96,14 @@ func cmdShow(c *cli.Context) {
 		}
 	}
 
-	fmt.Printf("%s - %s\n", entries[index].Native, entries[index].Foreign)
+	if c.GlobalBool("no-native") {
+		fmt.Printf("%s\n", entries[index].Foreign)
+	} else if c.GlobalBool("no-foreign") {
+		fmt.Printf("%s\n", entries[index].Native)
+	} else {
+		fmt.Printf("%s - %s\n", entries[index].Native, entries[index].Foreign)
+	}
+
 }
 
 // Main
@@ -111,11 +118,11 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
-			Name:  "native, n",
-			Usage: "display native word"},
+			Name:  "no-native, n",
+			Usage: "don't display native word"},
 		cli.BoolFlag{
-			Name:  "foreign, f",
-			Usage: "display foreign word"},
+			Name:  "no-foreign, f",
+			Usage: "don't display foreign word"},
 	}
 
 	app.Commands = []cli.Command{
