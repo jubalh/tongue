@@ -10,20 +10,6 @@ import (
 	"time"
 )
 
-// Contains some test data
-var testdata = []byte(`
-[
-{
-	"Native":"Eins",
-	"Foreign":"Uno"
-},
-{
-	"Native":"Hallo",
-	"Foreign":"Ciao"
-}
-]
-`)
-
 // An Entry consists of two fiels.
 // Native, containing the word in the users native language
 // Foreign, containing the word in the language the user intends to learn
@@ -77,6 +63,32 @@ func save(entities Entries) {
 	file.Write(content)
 }
 
+func cmdAdd(c *cli.Context) {
+	if len(c.Args()) < 2 {
+		fmt.Println("Usage: add native foreign")
+	} else {
+		entries, _ := load(filename)
+		e := Entry{Native: c.Args().Get(0), Foreign: c.Args().Get(1)}
+		entries = append(entries, e)
+		save(entries)
+	}
+}
+
+func cmdList(c *cli.Context) {
+	entries, count := load(filename)
+	fmt.Printf("You have %d entries in your database: \n", count)
+	for _, entry := range entries {
+		fmt.Printf("%s - %s\n", entry.Native, entry.Foreign)
+	}
+}
+
+func cmdRandom(c *cli.Context) {
+	entries, count := load(filename)
+	rand.Seed(time.Now().UTC().UnixNano())
+	index := rand.Intn(count)
+	fmt.Printf("%s - %s\n", entries[index].Native, entries[index].Foreign)
+}
+
 // Main
 func main() {
 	app := cli.NewApp()
@@ -88,10 +100,10 @@ func main() {
 	app.Email = "g.bluehut@gmail.com"
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
+		cli.BoolFlag{
 			Name:  "native, n",
 			Usage: "display native word"},
-		cli.StringFlag{
+		cli.BoolFlag{
 			Name:  "foreign, f",
 			Usage: "display foreign word"},
 	}
@@ -101,39 +113,19 @@ func main() {
 			Name:      "add",
 			ShortName: "a",
 			Usage:     "add a new entry to the database",
-			Action: func(c *cli.Context) {
-				if len(c.Args()) < 2 {
-					fmt.Println("Usage: add native foreign")
-				} else {
-					entries, _ := load(filename)
-					e := Entry{Native: c.Args().Get(0), Foreign: c.Args().Get(1)}
-					entries = append(entries, e)
-					save(entries)
-				}
-			},
+			Action:    cmdAdd,
 		},
 		{
 			Name:      "list",
 			ShortName: "l",
 			Usage:     "list all entries",
-			Action: func(c *cli.Context) {
-				entries, count := load(filename)
-				fmt.Printf("You have %d entries in your database: \n", count)
-				for _, entry := range entries {
-					fmt.Printf("%s - %s\n", entry.Native, entry.Foreign)
-				}
-			},
+			Action:    cmdList,
 		},
 		{
 			Name:      "random",
 			ShortName: "r",
 			Usage:     "display a random entry",
-			Action: func(c *cli.Context) {
-				entries, count := load(filename)
-				rand.Seed(time.Now().UTC().UnixNano())
-				index := rand.Intn(count)
-				fmt.Printf("%s - %s\n", entries[index].Native, entries[index].Foreign)
-			},
+			Action:    cmdRandom,
 		}}
 
 	app.Run(os.Args)
