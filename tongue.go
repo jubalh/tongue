@@ -19,14 +19,11 @@ type Entry struct {
 	Foreign string
 }
 
-// Entries is a slice of Entry.
-type Entries []Entry
-
 // Collection of entries
-var col Entries
+var col []Entry
 
 // load loads a JSON file into the Entries slice
-func loadJSON(c *cli.Context) (e Entries, count int) {
+func loadJSON(c *cli.Context) (e []Entry, count int) {
 	data, err := ioutil.ReadFile(c.GlobalString("file"))
 	if err != nil {
 		fmt.Println("error reading file")
@@ -46,7 +43,7 @@ func loadJSON(c *cli.Context) (e Entries, count int) {
 }
 
 // save saves JSON database to file.
-func saveJSON(c *cli.Context, entities Entries) {
+func saveJSON(c *cli.Context, entities []Entry) {
 	content, err := json.Marshal(entities)
 	if err != nil {
 		fmt.Println("Couldn't marshal Objects into JSON")
