@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/codegangsta/cli"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"time"
+
+	"github.com/codegangsta/cli"
 )
 
 // An Entry consists of two fiels.
@@ -21,33 +22,22 @@ type Entry struct {
 // Entries is a slice of Entry.
 type Entries []Entry
 
-// Default filename
-const defaultFilename string = "collection.json"
-
 // Collection of entries
 var col Entries
 
-// filename gets the filename that should be used.
-// If the user didn't specify any with --file defaultFilename will be used,
-// which is set to 'collection.json'.
-func filename(c *cli.Context) string {
-	if c.GlobalIsSet("file") {
-		return c.GlobalString("file")
-	}
-	return defaultFilename
-}
-
 // load loads a JSON file into the Entries slice
 func loadJSON(c *cli.Context) (e Entries, count int) {
-	data, err := ioutil.ReadFile(filename(c))
+	data, err := ioutil.ReadFile(c.GlobalString("file"))
 	if err != nil {
 		fmt.Println("error reading file")
+		return
 	}
 
-	err2 := json.Unmarshal(data, &e)
-	if err2 != nil {
+	err = json.Unmarshal(data, &e)
+	if err != nil {
 		fmt.Println("error")
-		fmt.Println(err2)
+		fmt.Println(err)
+		return
 	}
 
 	count = len(e)
@@ -59,26 +49,31 @@ func loadJSON(c *cli.Context) (e Entries, count int) {
 func saveJSON(c *cli.Context, entities Entries) {
 	content, err := json.Marshal(entities)
 	if err != nil {
-		fmt.Println("error")
+		fmt.Println("Couldn't marshal Objects into JSON")
+		return
 	}
-	file, err := os.Create(filename(c))
+	file, err := os.Create(c.GlobalString("file"))
 	if err != nil {
+		fmt.Println("Couldn't create file", c.GlobalString("file"))
 		return
 	}
 	defer file.Close()
 
-	file.Write(content)
+	_, err = file.Write(content)
+	if err != nil {
+		fmt.Println("Couldn't write file to filesystem")
+	}
 }
 
 // showNativeOrForeign switches between displaying only the native/foreign values or both.
 // It depends on the global --no-native / --no-foreign flag.
 func showNativeOrForeign(c *cli.Context, e Entry) {
 	if c.GlobalBool("no-native") {
-		fmt.Printf("%s\n", e.Foreign)
+		fmt.Println(e.Foreign)
 	} else if c.GlobalBool("no-foreign") {
-		fmt.Printf("%s\n", e.Native)
+		fmt.Println(e.Native)
 	} else {
-		fmt.Printf("%s - %s\n", e.Native, e.Foreign)
+		fmt.Println(e.Native, "-", e.Foreign)
 	}
 }
 
@@ -87,12 +82,12 @@ func showNativeOrForeign(c *cli.Context, e Entry) {
 func cmdAdd(c *cli.Context) {
 	if len(c.Args()) < 2 {
 		fmt.Println("Usage: add native foreign")
-	} else {
-		entries, _ := loadJSON(c)
-		e := Entry{Native: c.Args().Get(0), Foreign: c.Args().Get(1)}
-		entries = append(entries, e)
-		saveJSON(c, entries)
+		return
 	}
+	entries, _ := loadJSON(c)
+	e := Entry{Native: c.Args().Get(0), Foreign: c.Args().Get(1)}
+	entries = append(entries, e)
+	saveJSON(c, entries)
 }
 
 // cmdDelete handles the 'delete' command.
@@ -180,6 +175,7 @@ func main() {
 			Usage: "don't display foreign word"},
 		cli.StringFlag{
 			Name:  "file",
+			Value: "collection.json",
 			Usage: "specify JSON file"},
 	}
 
