@@ -1,3 +1,8 @@
+// tongue is a simple vocabulary manager for the commandline.
+// It stores all entries in plain, human readable, JSON files.
+// The default filename is collection.json but it can be adjusted
+// using the --file switch.
+// For an overview of the available commands run 'tongue --help'
 package main
 
 import (
