@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"os"
 	"time"
@@ -28,23 +29,21 @@ type Entry struct {
 var col []Entry
 
 // load loads a JSON file into the Entries slice
-func loadJSON(c *cli.Context) (e []Entry, count int) {
+func loadJSON(c *cli.Context) (e []Entry, count int, err error) {
 	data, err := ioutil.ReadFile(c.GlobalString("file"))
 	if err != nil {
-		fmt.Println("error reading file")
-		return
+		err = fmt.Errorf("Could not read file %s. Does it exist?", c.GlobalString("file"))
+		return nil, 0, err
 	}
 
 	err = json.Unmarshal(data, &e)
 	if err != nil {
-		fmt.Println("error")
-		fmt.Println(err)
-		return
+		return nil, 0, err
 	}
 
 	count = len(e)
 
-	return e, count
+	return e, count, nil
 }
 
 // save saves JSON database to file.
@@ -86,7 +85,11 @@ func cmdAdd(c *cli.Context) {
 		fmt.Println("Usage: add native foreign")
 		return
 	}
-	entries, _ := loadJSON(c)
+	//TODO: if does not exist, create it
+	entries, _, err := loadJSON(c)
+	if err != nil {
+		log.Fatal(err)
+	}
 	e := Entry{Native: c.Args().Get(0), Foreign: c.Args().Get(1)}
 	entries = append(entries, e)
 	saveJSON(c, entries)
@@ -96,7 +99,10 @@ func cmdAdd(c *cli.Context) {
 // It deletes an entry from the JSON database.
 // The searchterm is the native word, and only the first occurance will get deleted.
 func cmdDelete(c *cli.Context) {
-	entries, _ := loadJSON(c)
+	entries, _, err := loadJSON(c)
+	if err != nil {
+		log.Fatal(err)
+	}
 	for i, entry := range entries {
 		if entry.Native == c.Args().Get(0) {
 			entries = append(entries[:i], entries[i+1:]...)
@@ -109,9 +115,13 @@ func cmdDelete(c *cli.Context) {
 // cmdList handles the 'list' command.
 // It lists all entries from the JSON database.
 func cmdList(c *cli.Context) {
-	entries, count := loadJSON(c)
+	entries, count, err := loadJSON(c)
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Printf("You have %d entries in your database: \n", count)
 	for _, entry := range entries {
+		fmt.Println("bam")
 		showNativeOrForeign(c, entry)
 	}
 }
@@ -125,7 +135,10 @@ func cmdList(c *cli.Context) {
 // --foreign the foreign word of the entry
 // In case none of those is set it will display a random entry.
 func cmdShow(c *cli.Context) {
-	entries, count := loadJSON(c)
+	entries, count, err := loadJSON(c)
+	if err != nil {
+		log.Fatal(err)
+	}
 	if c.IsSet("native") {
 		search := c.String("native")
 		for _, entry := range entries {
