@@ -32,7 +32,6 @@ var col []Entry
 func loadJSON(c *cli.Context) (e []Entry, count int, err error) {
 	data, err := ioutil.ReadFile(c.GlobalString("file"))
 	if err != nil {
-		err = fmt.Errorf("Could not read file %s. Does it exist?", c.GlobalString("file"))
 		return nil, 0, err
 	}
 
@@ -85,10 +84,14 @@ func cmdAdd(c *cli.Context) {
 		fmt.Println("Usage: add native foreign")
 		return
 	}
-	//TODO: if does not exist, create it
 	entries, _, err := loadJSON(c)
 	if err != nil {
-		log.Fatal(err)
+		// In case file didn't exist, just create it
+		if os.IsNotExist(err) {
+			fmt.Println("Created new file:", c.GlobalString("file"))
+		} else {
+			log.Fatal(err)
+		}
 	}
 	e := Entry{Native: c.Args().Get(0), Foreign: c.Args().Get(1)}
 	entries = append(entries, e)
