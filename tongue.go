@@ -88,7 +88,9 @@ func cmdAdd(c *cli.Context) {
 	if err != nil {
 		// In case file didn't exist, just create it
 		if os.IsNotExist(err) {
-			fmt.Println("Created new file:", c.GlobalString("file"))
+			if c.GlobalBool("verbose") {
+				fmt.Println("Created new file:", c.GlobalString("file"))
+			}
 		} else {
 			log.Fatal(err)
 		}
@@ -122,7 +124,9 @@ func cmdList(c *cli.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("You have %d entries in your database: \n", count)
+	if c.GlobalBool("verbose") {
+		fmt.Println("You have", count, "entries in your database:")
+	}
 	for i, entry := range entries {
 		fmt.Print(i+1, ": ")
 		showNativeOrForeign(c, entry)
@@ -195,6 +199,9 @@ func main() {
 			Name:  "file",
 			Value: "collection.json",
 			Usage: "specify JSON file"},
+		cli.BoolFlag{
+			Name:  "verbose, m",
+			Usage: "display (more) additional messages"},
 	}
 
 	app.Commands = []cli.Command{
