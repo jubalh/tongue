@@ -123,7 +123,8 @@ func cmdList(c *cli.Context) {
 		log.Fatal(err)
 	}
 	fmt.Printf("You have %d entries in your database: \n", count)
-	for _, entry := range entries {
+	for i, entry := range entries {
+		fmt.Print(i+1, ": ")
 		showNativeOrForeign(c, entry)
 	}
 }
