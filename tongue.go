@@ -124,7 +124,6 @@ func cmdList(c *cli.Context) {
 	}
 	fmt.Printf("You have %d entries in your database: \n", count)
 	for _, entry := range entries {
-		fmt.Println("bam")
 		showNativeOrForeign(c, entry)
 	}
 }
