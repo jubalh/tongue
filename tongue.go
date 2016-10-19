@@ -14,7 +14,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 )
 
 // An Entry consists of two fiels.
