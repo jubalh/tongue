@@ -186,7 +186,7 @@ func main() {
 	app.Usage = "a cli vocabulary manager"
 	app.Author = "Michael Vetter"
 	app.Version = "0.0.1"
-	app.Email = "g.bluehut@gmail.com"
+	app.Email = "jubalh@openmailbox.org"
 
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
